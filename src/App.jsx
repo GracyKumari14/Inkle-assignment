@@ -6,11 +6,10 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import { FaRegEdit } from "react-icons/fa";
-import { LuFilter } from "react-icons/lu"; // filter icon
+import { LuFilter } from "react-icons/lu";
 import { IoLocation } from "react-icons/io5";
 import { PiPencilSimple } from "react-icons/pi";
 import { IoChevronDown } from "react-icons/io5";
-
 
 import "./App.css";
 
@@ -20,18 +19,28 @@ const COUNTRIES_API =
 
 const columnHelper = createColumnHelper();
 
+
+function formatRequestDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value; 
+
+  const options = { year: "numeric", month: "short", day: "numeric" };
+  return d.toLocaleDateString("en-US", options);
+}
+
 function App() {
   const [data, setData] = useState([]);
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editRow, setEditRow] = useState(null); // row being edited
+  const [editRow, setEditRow] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // filter state
+  
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedCountriesFilter, setSelectedCountriesFilter] = useState([]);
 
-  // ---------- FETCH DATA ----------
+  
   useEffect(() => {
     async function fetchAll() {
       try {
@@ -55,14 +64,14 @@ function App() {
     fetchAll();
   }, []);
 
-  // options shown in the filter dropdown (unique country names)
+  
   const countryFilterOptions = useMemo(() => {
     if (!countries?.length) return [];
     const names = countries.map((c) => c.name);
     return Array.from(new Set(names)); // unique
   }, [countries]);
 
-  // data after applying country filter
+  
   const filteredData = useMemo(() => {
     if (!selectedCountriesFilter.length) return data;
     return data.filter((row) =>
@@ -70,20 +79,22 @@ function App() {
     );
   }, [data, selectedCountriesFilter]);
 
-  // ---------- FILTER HANDLERS ----------
+  
   const handleCountryFilterToggle = () => {
     setIsFilterOpen((prev) => !prev);
   };
 
+  
   const handleCountryFilterChange = (name) => {
     setSelectedCountriesFilter((prev) =>
       prev.includes(name)
         ? prev.filter((n) => n !== name)
         : [...prev, name]
     );
+    setIsFilterOpen(false); 
   };
 
-  // ---------- EDIT FLOW ----------
+  
   function handleEditClick(row) {
     setEditRow(row);
     setShowModal(true);
@@ -111,7 +122,7 @@ function App() {
       });
       const saved = await res.json();
 
-      // update table data locally
+      
       setData((prev) =>
         prev.map((item) => (item.id === saved.id ? saved : item))
       );
@@ -122,7 +133,7 @@ function App() {
     }
   }
 
-  // ---------- TABLE COLUMNS ----------
+  
   const columns = useMemo(
     () => [
       columnHelper.accessor("name", {
@@ -144,7 +155,7 @@ function App() {
       }),
       columnHelper.accessor("requestDate", {
         header: "Request date",
-        cell: (info) => info.getValue(),
+        cell: (info) => formatRequestDate(info.getValue()),
       }),
       columnHelper.accessor("country", {
         header: () => (
@@ -187,15 +198,19 @@ function App() {
             onClick={() => handleEditClick(info.row.original)}
             aria-label="Edit"
           >
-            <FaRegEdit  className="edit-icon" />
+            <FaRegEdit className="edit-icon" />
           </button>
         ),
       }),
     ],
-    [countryFilterOptions, isFilterOpen, selectedCountriesFilter]
+    [
+      countryFilterOptions,
+      isFilterOpen,
+      selectedCountriesFilter,
+    ]
   );
 
-  // ---------- REACT TABLE ----------
+  
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -258,7 +273,7 @@ function App() {
   );
 }
 
-// ------------- MODAL COMPONENT -------------
+
 function EditCustomerModal({
   countries,
   initialName,
@@ -279,8 +294,8 @@ function EditCustomerModal({
     onSave({ name, country });
   }
 
-  const handleSelectCountry = (name) => {
-    setCountry(name);
+  const handleSelectCountry = (countryName) => {
+    setCountry(countryName);
     setIsCountryOpen(false);
   };
 
@@ -295,21 +310,20 @@ function EditCustomerModal({
         </div>
 
         <form onSubmit={handleSubmit} className="modal-body">
-         <label className="field-label">
-  <span className="label-text">
-    Name<span className="required">*</span>
-  </span>
-  <input
-    className="input"
-    value={name}
-    onChange={(e) => setName(e.target.value)}
-    placeholder="Enter name"
-  />
-</label>
+          <label className="field-label">
+            <span className="label-text">
+              Name<span className="required">*</span>
+            </span>
+            <input
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter name"
+            />
+          </label>
 
           <label className="field-label">
             Country
-            {/* custom dropdown instead of <select> */}
             <div
               className="custom-select"
               onClick={() => setIsCountryOpen((prev) => !prev)}
@@ -317,17 +331,18 @@ function EditCustomerModal({
               <span className={country ? "" : "placeholder"}>
                 {country || "Select country"}
               </span>
-              <span className="custom-select-arrow">▾</span>
+              <IoChevronDown className="custom-select-arrow" />
             </div>
 
             {isCountryOpen && (
               <div className="custom-select-dropdown">
                 {countries.map((c) => (
-                  <div key={c.id} className="custom-select-option">
-                    <div
-                      className="country-left"
-                      onClick={() => handleSelectCountry(c.name)}
-                    >
+                  <div
+                    key={c.id}
+                    className="custom-select-option"
+                    onClick={() => handleSelectCountry(c.name)}
+                  >
+                    <div className="country-left">
                       <IoLocation className="country-icon" />
                       <span>{c.name}</span>
                     </div>
@@ -336,8 +351,7 @@ function EditCustomerModal({
                       type="button"
                       className="dropdown-edit-button"
                       onClick={(e) => {
-                        e.stopPropagation(); // don't trigger selection
-                        // placeholder action for now:
+                        e.stopPropagation();
                         console.log("Edit country clicked:", c.name);
                       }}
                     >
