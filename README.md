@@ -1,18 +1,18 @@
 # Taxes UI – Setup & Run Guide
 
 ## Prerequisites
-  Before starting, ensure you have the following installed:
-  Node.js (LTS version recommended)
-  VS Code or any preferred code editor
+  Before starting, ensure you have the following installed:  
+  Node.js  
+  VS Code or any preferred code editor  
 
 ## Project Setup
-1️. Clone the repository
-2. git clone https://github.com/your-username/taxes-ui.git
-3. cd taxes-ui
+1️. Clone the repository  
+2. git clone https://github.com/your-username/taxes-ui.git  
+3. cd taxes-ui  
 
 ## Install dependencies
-  npm install
-  Includes @tanstack/react-table for table UI components.
+  npm install  
+  Includes @tanstack/react-table for table UI components.  
 
 ## Run the Application
  Start the development server:
